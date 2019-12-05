@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -116,18 +117,32 @@ public class DenseMatrix implements Matrix {
   } */
 
 
-  public DenseMatrix mul(SparseMatrix SMtx) {
+  public SparseMatrix mul(SparseMatrix SMtx) {
     if (width == SMtx.height && SMtx.val != null && matrix != null) {
-      double[][] res = new double[height][SMtx.width];
-
+      //double[][] res = new double[height][SMtx.width];
+      HashMap<Point, Double> result = new HashMap<>();
       for (Point p : SMtx.val.keySet()) {
         for (int j = 0; j < height; j++) {
             {
-              res[j][p.y] += SMtx.val.get(p) * matrix[j][p.x];
+              //res[j][p.y] += SMtx.val.get(p) * matrix[j][p.x];
+              Point pn = new Point(j,p.y);
+              double temp;
+              if (result.containsKey(pn)) {
+                temp = result.get(pn)+ SMtx.val.get(p) * matrix[j][p.x];
+                if (temp == 0) result.remove(pn);
+                else result.put(pn, temp);
+              } else {
+                temp = SMtx.val.get(p) * matrix[j][p.x];
+                if ((temp != 0))
+                result.put(pn, temp);
+              }
+
+
             }
         }
       }
-      return new DenseMatrix(res);
+
+      return new SparseMatrix(result, height, SMtx.width);
     } else throw new RuntimeException("Размеры матриц не отвечают матричному уможению.");
   }
 
@@ -177,9 +192,10 @@ public class DenseMatrix implements Matrix {
     }
 
     if (o instanceof SparseMatrix) {
+      System.out.println("FALSE");
       return false;
     }
-
+    System.out.println("FALSE");
     return false;
   }
 

@@ -141,20 +141,35 @@ public class SparseMatrix implements Matrix {
     } else throw new RuntimeException("Размеры матриц не верны");
   }
 
-  public DenseMatrix mul(DenseMatrix DMtx) {
+  public SparseMatrix mul(DenseMatrix DMtx) {
     if (width == DMtx.height && val != null && DMtx.matrix != null) {
-      double[][] res = new double[height][DMtx.width];
+      //double[][] res = new double[height][DMtx.width];
+      HashMap<Point, Double> result = new HashMap<>();
       DenseMatrix tDMtx = DMtx.transpose();
       for (Point p : val.keySet()) {
         for (int j = 0; j < tDMtx.height; j++) {
+          /*
           for (int k = 0; k < width; k++) {
             if (p.y == k) {
               res[p.x][j] += val.get(p) * tDMtx.matrix[j][k];
             }
+          }*/
+          Point pn = new Point(p.y, j);
+          double temp;
+          if (result.containsKey(pn)) {
+            temp = result.get(pn)+ (val.get(p) * tDMtx.matrix[p.y][j]);
+            if (temp == 0) result.remove(pn);
+            else result.put(pn, temp);
+          } else {
+            temp =  val.get(p) * tDMtx.matrix[p.x][j];
+            if (temp != 0)
+            result.put(pn, temp);
           }
+
         }
       }
-      return new DenseMatrix(res);
+
+      return new SparseMatrix(result, height, width);
     } else throw new RuntimeException("Размеры матриц не отвечают матричному уможению.");
   }
 
@@ -225,19 +240,25 @@ public class SparseMatrix implements Matrix {
       }
     }
     if (o instanceof SparseMatrix) {
+      System.out.println("SMTX");
       SparseMatrix SMtx = (SparseMatrix) o;
+
       if (val == null || SMtx.val == null) return false;
       if (SMtx.val == val) return true;
       if (this.hashCode() != SMtx.hashCode()) return false;
       if (height != SMtx.height || width != SMtx.width) return false;
       if (val.size() != SMtx.val.size()) return false;
+
       for (Point p : val.keySet()) {
-        if (val.get(p) - (SMtx.val.get(p)) != 0)
+        if (val.get(p) - SMtx.val.get(p) != 0) {
+          System.out.println("x_"+ p.x);
+          System.out.println("y_"+p.y);
           return false;
+        }
       }
       return true;
     }
-    return false;
+        return false;
   }
 
   @Override
